@@ -1,19 +1,19 @@
 import type { ActionFunction } from '@remix-run/node';
 import { json } from '@remix-run/node';
-import { Form, useActionData } from '@remix-run/react';
-import { login } from '~/utils/session.server';
+import { Form, useActionData, useCatch } from '@remix-run/react';
 import { z } from 'zod';
+import { authenticate } from '../utils/session.server';
 
 const Credentials = z.object({
-  email: z.string().min(1),
-  password: z.string().min(1),
+  email: z.string().min(1, "Email can't be empty"),
+  password: z.string().min(1, "Password can't be empty"),
 });
 
 type ActionData = {
-  formError?: string;
+  formErrors?: string[];
   fieldErrors?: {
-    username: string | undefined;
-    password: string | undefined;
+    email?: string[] | undefined;
+    password?: string[] | undefined;
   };
   fields?: {
     loginType: string;
@@ -21,6 +21,11 @@ type ActionData = {
     password: string;
   };
 };
+
+const ErrorResponse = z.object({
+  message: z.string(),
+  status: z.number(),
+});
 
 export const action: ActionFunction = async ({ request }) => {
   const form = await request.formData();
@@ -33,20 +38,27 @@ export const action: ActionFunction = async ({ request }) => {
   });
 
   if (!credentials.success) {
-    console.error(credentials.error);
-    return json({ status: 400 });
+    return json(credentials.error.flatten());
   }
 
   const email = credentials.data.email;
   const password = credentials.data.password;
 
-  const result = await login({ email, password });
+  try {
+    return await authenticate({ email, password });
+  } catch (error) {
+    const parsedError = ErrorResponse.safeParse(error);
 
-  if (!result.user) {
-    return json(result, { status: 400 });
+    if (parsedError.success) {
+      const { message, status } = parsedError.data;
+      return json(
+        { formErrors: [`${message}. Status: ${status}`] },
+        { status },
+      );
+    }
+
+    return json({ formErrors: ['Unknown error'] }, { status: 500 });
   }
-
-  return result;
 };
 
 export default function Login() {
@@ -66,6 +78,10 @@ export default function Login() {
           defaultValue={'micke_eri@hotmail.com'}
         />
 
+        {formData?.fieldErrors?.email?.map((message) => (
+          <p key={message}>{message}</p>
+        ))}
+
         <label htmlFor="password">Lösenord</label>
         <input
           type="password"
@@ -74,8 +90,28 @@ export default function Login() {
           defaultValue="password"
         />
 
-        <button type="submit">Logga in</button>
+        {formData?.fieldErrors?.password?.map((message) => (
+          <p key={message}>{message}</p>
+        ))}
+
+        <div>
+          {formData?.formErrors?.map((error) => (
+            <p key={error}>{error}</p>
+          ))}
+
+          <button type="submit">Logga in</button>
+        </div>
       </Form>
+    </div>
+  );
+}
+
+export function CatchBoundary() {
+  const caught = useCatch();
+
+  return (
+    <div className="error-container">
+      <pre>{JSON.stringify(caught)}</pre>
     </div>
   );
 }
