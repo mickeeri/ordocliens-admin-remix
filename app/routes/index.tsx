@@ -1,7 +1,12 @@
-export default function Index() {
-  return (
-    <div
-      style={{ fontFamily: 'system-ui, sans-serif', lineHeight: '1.4' }}
-    ></div>
-  );
-}
+import type { LoaderFunction } from '@remix-run/node';
+import { redirect } from '@remix-run/node';
+import { getAuthToken } from '../utils/session.server';
+
+export const loader: LoaderFunction = async ({ request }) => {
+  try {
+    await getAuthToken(request);
+    return redirect('/dashboard');
+  } catch (error) {
+    return redirect('/login');
+  }
+};

@@ -118,7 +118,7 @@ export const getUser = (request: Request) => {
 
 const getAuthTokenFromSession = ({ get }: Session) => get('authToken');
 
-function getAuthToken(request: Request) {
+export function getAuthToken(request: Request) {
   return storage
     .getSession(request.headers.get('Cookie'))
     .then(getAuthTokenFromSession)
