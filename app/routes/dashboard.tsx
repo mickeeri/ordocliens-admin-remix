@@ -1,11 +1,13 @@
-import type { LoaderFunction } from '@remix-run/node';
+import type { LoaderFunction, ActionFunction } from '@remix-run/node';
 import { json, redirect } from '@remix-run/node';
-import { useLoaderData } from '@remix-run/react';
+import { useLoaderData, Form } from '@remix-run/react';
 import { getUser } from '~/utils/session.server';
 
 type LoaderData = {
   user: Awaited<ReturnType<typeof getUser>>;
 };
+
+export const action: ActionFunction = ({ request }) => {};
 
 export const loader: LoaderFunction = async ({ request }) => {
   try {
@@ -25,6 +27,10 @@ export default function Dashboard() {
       <h1>
         Welcome {data.user.firstName} {data.user.lastName}
       </h1>
+
+      <Form action="/logout" method="post">
+        <button type="submit">Logga ut</button>
+      </Form>
     </div>
   );
 }
