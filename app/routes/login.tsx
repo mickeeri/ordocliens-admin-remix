@@ -71,24 +71,14 @@ export default function Login() {
       <h1>Logga in</h1>
       <Form method="post">
         <label htmlFor="email">E-post</label>
-        <input
-          type="text"
-          name="email"
-          id="email"
-          defaultValue={'micke_eri@hotmail.com'}
-        />
+        <input type="text" name="email" id="email" />
 
         {formData?.fieldErrors?.email?.map((message) => (
           <p key={message}>{message}</p>
         ))}
 
         <label htmlFor="password">Lösenord</label>
-        <input
-          type="password"
-          name="password"
-          id="password"
-          defaultValue="password"
-        />
+        <input type="password" name="password" id="password" />
 
         {formData?.fieldErrors?.password?.map((message) => (
           <p key={message}>{message}</p>
