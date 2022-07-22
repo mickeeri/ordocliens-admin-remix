@@ -1,0 +1,24 @@
+version: 2.1
+
+jobs:
+  playwright-test:
+    docker:
+      - image: mcr.microsoft.com/playwright:v1.24.0-focal
+    environment:
+      NODE_ENV: development
+      SESSION_SECRET: abc-123-abc-123
+
+    steps:
+      - checkout
+      - run:
+          name: 'Install deps'
+          command: 'npm ci'
+
+      - run:
+          name: 'Run tests'
+          command: 'npm run playwright:test'
+
+workflows:
+  playwright-workflow:
+    jobs:
+      - playwright-test
